@@ -1,0 +1,55 @@
+# Created by venv; see https://docs.python.org/3/library/venv.html
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# --- Środowisko wirtualne (KLUCZOWE) ---
+.venv/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# --- Django ---
+db.sqlite3
+db.sqlite3-journal
+media/
+static/
+staticfiles/
+
+# --- Zmienne środowiskowe (SEKRETY) ---
+.env
+.venv
+env/
+venv/
+AUTH_PASSWORD_VALIDATORS
+
+# --- IDE (VS Code, PyCharm) ---
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- Systemowe ---
+.DS_Store
+Thumbs.db
