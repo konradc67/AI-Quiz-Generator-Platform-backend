@@ -46,6 +46,7 @@ Aplikacja będzie dostępna w przeglądarce pod adresem: `http://127.0.0.1:8000/
 
 ---
 
+
 ## 🚀 Standardy pracy w zespole
 
 **Dodawanie nowej biblioteki:**
