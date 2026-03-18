@@ -3,7 +3,7 @@ from django.contrib.auth.models import AbstractUser
 
 class User(AbstractUser):
     class Role(models.TextChoices):
-        STUDENT = 'UCZEŃ', 'Uczeń'
+        STUDENT = 'STUDENT', 'Uczeń'
         TEACHER = 'TEACHER', 'Nauczyciel'
         COLLEGIAN = 'COLLEGIAN', 'Student'
         OTHER = 'OTHER', 'Inne'
