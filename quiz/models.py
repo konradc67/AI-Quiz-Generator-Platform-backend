@@ -26,7 +26,7 @@ class Question(models.Model):
     )
 
     def __str__(self):
-        return f"{self.quiz.topic} - {self.content[:30]}..."
+        return f"{self.quiz.topic} - {self.text[:30]}..."
 
 class Answer(models.Model):
     text = models.TextField(max_length=255)
