@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dołącz do AI Quiz</title>
+</head>
+<body>
+    <h2>Załóż konto</h2>
+    <form method="POST">
+        {% csrf_token %}
+        
+        {{ form.as_p }} <button type="submit">Zarejestruj się</button>
+    </form>
+    <hr>
+    <p>Masz już konto? <a href="/auth/login/">Zaloguj się</a></p>
+</body>
+</html>

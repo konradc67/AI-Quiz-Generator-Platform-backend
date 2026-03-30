@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Backend</title>
+</head>
+<body>
+    <nav>
+        {% if user.is_authenticated %}
+            <p>Zalogowany jako: <strong>{{ user.username }}</strong></p>
+            <p>Punkty: {{ user.points }} | Rola: {{ user.role }}</p>
+
+            <form action="/admin/logout/" method="post">
+                {% csrf_token %}
+                <button type="submit">Wyloguj się</button>
+            </form>
+
+        {% else %}
+            <p>Nie jesteś zalogowany.</p>
+            <a href="user/login/"><button>Zaloguj</button></a>
+            <a href="user/register/"><button>Zarejestruj</button></a>
+        {% endif %}
+    </nav>
+
+    <hr>
+    <h1>Główna strona testowa</h1>
+    <button onclick="alert('Tu AI wygeneruje quiz!')">Testowy przycisk AI</button>
+</body>
+</html>
