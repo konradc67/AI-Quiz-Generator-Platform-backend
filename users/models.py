@@ -21,4 +21,4 @@ class User(AbstractUser):
     )
 
     class Meta:
-        db_table = 'User'  # <--- TO NAPRAWIA BŁĄD. Mówi Django: szukaj tabeli "User"
+        db_table = 'user'  # <--- TO NAPRAWIA BŁĄD. Mówi Django: szukaj tabeli "User"
