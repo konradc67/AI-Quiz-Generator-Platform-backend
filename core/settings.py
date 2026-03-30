@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'corsheaders', #React
     'quiz', #aplikacja
     'users',
+    'rest_framework_simplejwt'
 ]
 
 MIDDLEWARE = [
@@ -146,3 +147,8 @@ STATIC_URL = 'static/'
 AUTH_USER_MODEL = 'users.User'
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'home'
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
+}
