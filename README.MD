@@ -46,6 +46,7 @@ Aplikacja będzie dostępna w przeglądarce pod adresem: `http://127.0.0.1:8000/
 
 ---
 
+
 ## 🚀 Standardy pracy w zespole
 
 **Dodawanie nowej biblioteki:**
@@ -59,10 +60,3 @@ Po zrobieniu `git pull`, profilaktycznie zaktualizuj swoje lokalne środowisko:
 ```bash
 pip install -r requirements.txt
 ```
-
-## ⚠️ Higiena Repozytorium (Ważne!)
-
-1. **NIE WRZUCAJ folderu `.venv`** – jest on ignorowany przez `.gitignore`. Każdy tworzy własny lokalnie.
-2. **NIE WRZUCAJ plików `.env`** – zawierają one wrażliwe dane (hasła, klucze API).
-3. **Zawsze sprawdzaj `git status` przed commitem.** Jeśli widzisz na liście pliki bazy danych (`db.sqlite3`) lub foldery `__pycache__`, oznacza to, że Twój `.gitignore` nie działa poprawnie – napraw to zanim zrobisz `push`.
-4. **Zależności:** Jeśli instalujesz nową bibliotekę, od razu zrób `pip freeze > requirements.txt`.
