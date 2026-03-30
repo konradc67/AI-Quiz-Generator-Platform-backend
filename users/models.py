@@ -8,6 +8,9 @@ class User(AbstractUser):
         COLLEGIAN = 'COLLEGIAN', 'Student'
         OTHER = 'OTHER', 'Inne'
 
+    # Podpinamy Twój dziwny klucz z Neona pod to, czego oczekuje Django
+    id = models.AutoField(primary_key=True, db_column='users_id')
+
     country = models.CharField(max_length=50)
     premium = models.BooleanField(default=False)
     points = models.PositiveIntegerField(default=0)
@@ -16,3 +19,6 @@ class User(AbstractUser):
         choices=Role.choices,
         default=Role.STUDENT
     )
+
+    class Meta:
+        db_table = 'User'  # <--- TO NAPRAWIA BŁĄD. Mówi Django: szukaj tabeli "User"
