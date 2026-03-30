@@ -59,7 +59,7 @@ MIDDLEWARE = [
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000", #react
-    "https://ai-quiz-generator-platform.vercel.app/" #vercerl
+    "https://ai-quiz-generator-platform.vercel.app" #vercerl
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -141,4 +141,3 @@ STATIC_URL = 'static/'
 AUTH_USER_MODEL = 'users.User'
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'home'
-
