@@ -25,7 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-%p9wg$c8#1+&e288smtl(ge4=-=+q7uln41o1e8$u^!196^*t4'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['.vercel.app', 'localhost', '127.0.0.1']
 
@@ -88,8 +88,12 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'railway',
+        'USER': 'postgres',
+        'PASSWORD': 'JQpGrWbLCoiYmHODlgMsliCzFfcrfcoQ',
+        'HOST': 'hopper.proxy.rlwy.net',
+        'PORT': '36062',
     }
 }
 
@@ -97,16 +101,6 @@ CSRF_TRUSTED_ORIGINS = [
     'https://ai-quiz-generator-platform.vercel.app',
     'https://*.vercel.app'
 ]
-
-DATABASE_URL = os.environ.get('DATABASE_URL') or os.environ.get('POSTGRES_URL')
-
-if DATABASE_URL:
-    DATABASES['default'] = dj_database_url.config(
-        default=DATABASE_URL,
-        conn_max_age=600,
-        ssl_require=True
-    )
-
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
@@ -144,6 +138,11 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles_build', 'static')
+
+
+
 AUTH_USER_MODEL = 'users.User'
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'home'
@@ -152,5 +151,3 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     )
 }
-
-AUTH_USER_MODEL = 'users.User'
