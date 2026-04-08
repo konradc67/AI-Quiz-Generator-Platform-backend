@@ -89,11 +89,11 @@ WSGI_APPLICATION = 'core.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'railway',
-        'USER': 'postgres',
-        'PASSWORD': 'JQpGrWbLCoiYmHODlgMsliCzFfcrfcoQ',
-        'HOST': 'hopper.proxy.rlwy.net',
-        'PORT': '36062',
+        'NAME': os.environ.get('PGDATABASE', 'neondb'),
+        'USER': os.environ.get('PGUSER', 'neondb_owner'),
+        'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
+        'HOST': os.environ.get('PGHOST'),
+        'PORT': '5432',
     }
 }
 
