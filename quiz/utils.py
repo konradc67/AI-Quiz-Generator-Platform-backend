@@ -1,6 +1,8 @@
 import requests
 import json
 from django.conf import settings
+from .models import Quiz, Question, Answer
+import re
 
 def get_ai_quiz(topic):
     url = "https://openrouter.ai/api/v1/chat/completions"
@@ -9,7 +11,7 @@ def get_ai_quiz(topic):
         "Content-Type": "application/json"
     }
     
-    prompt = f"Stwórz quiz o: {topic}. Zwróć tylko JSON: [{{'q': 'pytanie', 'a': ['odp1', 'odp2'], 'correct': 'odp1'}}]"
+    prompt = f"""Create quiz about: {topic}. Always answer in the following json format: [{{"q": "pytanie", "a": ["odp1", "odp2"], "correct": "odp1"}}] Only json is allowed as an answer. No explanation or other text is allowed."""
 
     payload = {
         "model": "openai/gpt-oss-120b:free",
@@ -23,8 +25,34 @@ def get_ai_quiz(topic):
         content = full_data['choices'][0]['message']['content']
         
         try:
+            content = re.sub(r"```json", "", content)
+            content = re.sub(r"```", "", content)
+            content = content.strip()
             return json.loads(content)
         except json.JSONDecodeError:
             return {"error": "AI wypluło śmieci zamiast JSONa", "raw": content}
             
     return {"error": "Błąd połączenia z OpenRouter", "details": response.text}
+
+def save_ai_quiz(topic, ai_data, user=None):
+    quiz = Quiz.objects.create(
+        topic=topic,
+        questions_count=len(ai_data),
+        author=user
+    )
+
+    for item in ai_data:
+        question = Question.objects.create(
+            text=item["q"],
+            answers_count=len(item["a"]),
+            quiz=quiz
+        )
+
+        for ans in item["a"]:
+            Answer.objects.create(
+                text=ans,
+                correct=(ans == item["correct"]),
+                question=question
+            )
+
+    return quiz

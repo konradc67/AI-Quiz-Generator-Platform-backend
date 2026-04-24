@@ -10,7 +10,9 @@ class Quiz(models.Model):
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL, 
         on_delete=models.CASCADE,
-        related_name='quizzes'
+        related_name='quizzes',
+        null=True,
+        blank=True
     )
 
     def __str__(self):
