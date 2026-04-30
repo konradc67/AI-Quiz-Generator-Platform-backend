@@ -18,7 +18,7 @@ Always answer in the following json format: [{{"q": "pytanie", "a": ["odp1", "od
 Only json is allowed as an answer. No explanation or other text is allowed."""
 
     payload = {
-        "model": "openai/gpt-oss-20b:free",
+        "model": "google/gemma-3n-e4b-it:free",
         "messages": [{"role": "user", "content": prompt}]
     }
 
