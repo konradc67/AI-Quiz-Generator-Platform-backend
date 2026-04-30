@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.http import HttpResponse
 
 from .models import Quiz
+from django.db.models import Sum
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -105,6 +106,28 @@ class QuizDetailView(APIView):
 
         except Quiz.DoesNotExist:
             return Response({"success": False, "error": "Quiz nie istnieje lub brak dostępu."}, status=404)
+        except Exception as e:
+            print(traceback.format_exc())
+            return Response({"success": False, "error": str(e)}, status=500)
+        
+class DashboardStatsView(APIView):
+    def get(self, request):
+        try:
+            user_quizzes = Quiz.objects.filter(author=request.user)
+            total_quizzes = user_quizzes.count()
+            
+            total_questions = user_quizzes.aggregate(Sum('questions_count'))['questions_count__sum'] or 0
+            
+            latest_quiz = user_quizzes.order_by('-id').first()
+            last_activity = latest_quiz.created_at if latest_quiz else "No activity yet"
+
+            return Response({
+                "success": True,
+                "total_quizzes": total_quizzes,
+                "total_questions": total_questions,
+                "last_activity": last_activity
+            }, status=200)
+
         except Exception as e:
             print(traceback.format_exc())
             return Response({"success": False, "error": str(e)}, status=500)

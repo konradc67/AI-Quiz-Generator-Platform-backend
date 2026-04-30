@@ -1,7 +1,7 @@
 from . import views
 from django.contrib import admin
 from django.urls import path, include
-from .views import QuizGenerateView, QuizHistoryView, QuizDetailView
+from .views import QuizGenerateView, QuizHistoryView, QuizDetailView, DashboardStatsView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -9,5 +9,6 @@ urlpatterns = [
     path("user/", include('users.urls')),
     path("generate/", QuizGenerateView.as_view(), name='quiz-generate'),
     path("history/", QuizHistoryView.as_view(), name='quiz-history'),
-    path("history/<int:quiz_id>/", QuizDetailView.as_view(), name='quiz-detail')
+    path("history/<int:quiz_id>/", QuizDetailView.as_view(), name='quiz-detail'),
+    path("stats/", DashboardStatsView.as_view(), name='dashboard-stats')
 ]
