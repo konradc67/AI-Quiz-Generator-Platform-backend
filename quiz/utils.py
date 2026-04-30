@@ -2,17 +2,24 @@ import requests
 import json
 from django.conf import settings
 
-def get_ai_quiz(topic):
-    url = "https://openrouter.ai/api/v1/chat/completions"
+def get_ai_quiz(topic, question_count, difficulty):
+    url = "[https://openrouter.ai/api/v1/chat/completions](https://openrouter.ai/api/v1/chat/completions)"
     headers = {
         "Authorization": f"Bearer {settings.OPENROUTER_API_KEY}",
         "Content-Type": "application/json"
     }
     
-    prompt = f"Stwórz quiz o: {topic}. Zwróć tylko JSON: [{{'q': 'pytanie', 'a': ['odp1', 'odp2'], 'correct': 'odp1'}}]"
+    prompt = (
+        f"Stwórz quiz o tematyce: {topic}. "
+        f"Poziom trudności: {difficulty}. "
+        f"Wygeneruj dokładnie {question_count} pytań. "
+        "Zwróć WYŁĄCZNIE surowy JSON bez żadnych bloków formatowania markdown (nie używaj ```json). "
+        "Struktura musi wyglądać tak: "
+        "[{\"q\": \"pytanie\", \"a\": [\"odp1\", \"odp2\", \"odp3\", \"odp4\"], \"correct\": \"odp1\"}]"
+    )
 
     payload = {
-        "model": "openai/gpt-oss-120b:free",
+        "model": "google/gemma-4-31b-it:free",  # Model uaktualniony do Gemma
         "messages": [{"role": "user", "content": prompt}]
     }
 
@@ -20,14 +27,13 @@ def get_ai_quiz(topic):
     
     if response.status_code == 200:
         full_data = response.json()
-        # 1. Wyciągamy sam tekst z odpowiedzi AI
         content = full_data['choices'][0]['message']['content']
         
-        # 2. AI zwraca treść jako STRING. Musimy to zamienić na prawdziwą listę/słownik Pythona:
+        content = content.replace("```json", "").replace("```", "").strip()
+        
         try:
             return json.loads(content)
         except json.JSONDecodeError:
-            # Na wypadek gdyby AI dosypało jakiś tekst poza JSON-em
             return {"error": "AI wypluło śmieci zamiast JSONa", "raw": content}
             
     return {"error": "Błąd połączenia z OpenRouter", "details": response.text}
