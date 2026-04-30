@@ -1,6 +1,8 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 
+from .models import Quiz
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
@@ -44,3 +46,26 @@ class QuizGenerateView(APIView):
                 "success": False,
                 "error": str(e)
             }, status=500)
+        
+class QuizHistoryView(APIView):
+    def get(self, request):
+        try:
+            quizzes = Quiz.objects.filter(author=request.user).order_by('-id')
+            
+            history_data = []
+            for q in quizzes:
+                history_data.append({
+                    "id": q.id,
+                    "topic": q.topic,
+                    "created_at": q.created_at,
+                    "questions_count": q.questions_count
+                })
+
+            return Response({
+                "success": True,
+                "history": history_data
+            }, status=200)
+
+        except Exception as e:
+            print(traceback.format_exc())
+            return Response({"success": False, "error": str(e)}, status=500)
