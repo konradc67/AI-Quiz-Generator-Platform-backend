@@ -69,3 +69,44 @@ class QuizHistoryView(APIView):
         except Exception as e:
             print(traceback.format_exc())
             return Response({"success": False, "error": str(e)}, status=500)
+
+class QuizDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, quiz_id):
+        try:
+            # 1. Pobieramy quiz upewniając się, że należy do usera
+            quiz = Quiz.objects.get(id=quiz_id, author=request.user)
+            
+            # 2. Wyciągamy pytania i przypisane do nich odpowiedzi
+            questions_data = []
+            
+            # quiz.questions działa, bo w models.py dałeś related_name='questions'
+            for q in quiz.questions.all():
+                answers = []
+                correct_answer = ""
+                
+                # q.answers działa, bo dałeś related_name='answers'
+                for a in q.answers.all():
+                    answers.append(a.text)
+                    if a.correct:
+                        correct_answer = a.text
+                        
+                questions_data.append({
+                    "q": q.text,
+                    "a": answers,
+                    "correct": correct_answer
+                })
+
+            return Response({
+                "success": True,
+                "topic": quiz.topic,
+                "created_at": quiz.created_at,
+                "questions": questions_data
+            }, status=200)
+
+        except Quiz.DoesNotExist:
+            return Response({"success": False, "error": "Quiz nie istnieje lub brak dostępu."}, status=404)
+        except Exception as e:
+            print(traceback.format_exc())
+            return Response({"success": False, "error": str(e)}, status=500)
