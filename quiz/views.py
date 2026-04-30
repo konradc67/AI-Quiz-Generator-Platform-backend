@@ -12,11 +12,17 @@ def home(request):
 
 class QuizGenerateView(APIView):
     permission_classes=[AllowAny]
+    
     def post(self, request):
         try:
-            topic = request.data.get('topic', 'General Knowledge')
+            topic = request.data.get('prompt') or request.data.get('topic', 'General Knowledge')
+            question_count = request.data.get('questionCount', 10)
+            difficulty = request.data.get('difficulty', 'medium')
+            
             user = request.user if request.user.is_authenticated else None
-            ai_data = get_ai_quiz(topic)
+            
+            ai_data = get_ai_quiz(topic, question_count, difficulty)
+            
             if isinstance(ai_data, dict) and "error" in ai_data:
                 return Response({"success": False, "error": ai_data}, status=400)
 
@@ -25,7 +31,8 @@ class QuizGenerateView(APIView):
             return Response({
                 "success": True,
                 "quiz_id": quiz.id,
-                "questions": ai_data})
+                "questions": ai_data
+            })
 
         except Exception as e:
             print("\n error: \n")

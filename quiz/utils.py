@@ -4,17 +4,21 @@ from django.conf import settings
 from .models import Quiz, Question, Answer
 import re
 
-def get_ai_quiz(topic):
+def get_ai_quiz(topic, question_count=10, difficulty="medium"):
     url = "https://openrouter.ai/api/v1/chat/completions"
     headers = {
         "Authorization": f"Bearer {settings.OPENROUTER_API_KEY}",
         "Content-Type": "application/json"
     }
     
-    prompt = f"""Create quiz about: {topic}. Always answer in the following json format: [{{"q": "pytanie", "a": ["odp1", "odp2"], "correct": "odp1"}}] Only json is allowed as an answer. No explanation or other text is allowed."""
+    prompt = f"""Create quiz about: {topic}. 
+Difficulty level: {difficulty}. 
+Number of questions: {question_count}.
+Always answer in the following json format: [{{"q": "pytanie", "a": ["odp1", "odp2", "odp3", "odp4"], "correct": "odp1"}}] 
+Only json is allowed as an answer. No explanation or other text is allowed."""
 
     payload = {
-        "model": "openai/gpt-oss-120b:free",
+        "model": "google/gemma-4-31b-it:free",
         "messages": [{"role": "user", "content": prompt}]
     }
 
