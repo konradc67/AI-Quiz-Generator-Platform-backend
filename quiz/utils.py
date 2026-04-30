@@ -11,11 +11,8 @@ def get_ai_quiz(topic, question_count=10, difficulty="medium"):
         "Content-Type": "application/json"
     }
     
-    prompt = f"""Create quiz about: {topic}. 
-Difficulty level: {difficulty}. 
-Number of questions: {question_count}.
-Always answer in the following json format: [{{"q": "pytanie", "a": ["odp1", "odp2", "odp3", "odp4"], "correct": "odp1"}}] 
-Only json is allowed as an answer. No explanation or other text is allowed."""
+    prompt = f"""Create quiz about: {topic} with {difficulty} difficulty and {question_count} questions.
+Answer only in the following json format: [{{"q": "pytanie", "a": ["odp1", "odp2", "odp3", "odp4"], "correct": "odp1"}}] and nothing else."""
 
     payload = {
         "model": "google/gemma-3-4b-it:free",
