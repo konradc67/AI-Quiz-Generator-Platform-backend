@@ -1,17 +1,13 @@
 from django.shortcuts import render
-from django.http import HttpResponse
-
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny
+from django.contrib.auth.models import User
 from .utils import get_ai_quiz, save_ai_quiz
 import traceback
 
-def home(request):
-    return render(request, 'quiz/home.html')
-
 class QuizGenerateView(APIView):
-    permission_classes=[AllowAny]
+    permission_classes = [AllowAny]
     
     def post(self, request):
         try:
@@ -19,8 +15,11 @@ class QuizGenerateView(APIView):
             question_count = request.data.get('questionCount', 10)
             difficulty = request.data.get('difficulty', 'medium')
             
-            user = request.user if request.user.is_authenticated else None
-            
+            if request.user.is_authenticated:
+                user = request.user
+            else:
+                user = User.objects.first() 
+                
             ai_data = get_ai_quiz(topic, question_count, difficulty)
             
             if isinstance(ai_data, dict) and "error" in ai_data:
