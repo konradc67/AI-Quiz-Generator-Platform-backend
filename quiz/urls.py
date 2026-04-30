@@ -1,7 +1,7 @@
 from . import views
 from django.contrib import admin
 from django.urls import path, include
-from .views import QuizGenerateView
+from .views import QuizGenerateView, QuizHistoryView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
