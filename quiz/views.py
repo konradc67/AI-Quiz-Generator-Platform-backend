@@ -71,8 +71,6 @@ class QuizHistoryView(APIView):
             return Response({"success": False, "error": str(e)}, status=500)
 
 class QuizDetailView(APIView):
-    permission_classes = [IsAuthenticated]
-
     def get(self, request, quiz_id):
         try:
             # 1. Pobieramy quiz upewniając się, że należy do usera
