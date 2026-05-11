@@ -6,8 +6,10 @@ from .models import Quiz, Question, Answer
 
 def get_ai_quiz(topic, question_count=5, difficulty="easy"):
     api_key = settings.GOOGLE_API_KEY
-    model = "gemini-1.5-pro" 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
+    
+    model = "gemini-1.5-flash" 
+    
+    url = f"https://generativelanguage.googleapis.com/v1/models/{model}:generateContent?key={api_key}"
     
     headers = {
         "Content-Type": "application/json"
