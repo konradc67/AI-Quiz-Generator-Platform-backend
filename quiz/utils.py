@@ -9,8 +9,7 @@ def get_ai_quiz(topic, question_count=10, difficulty="medium"):
     model = "gemini-2.5-flash" 
     
     # POPRAWKA 1: Zmiana ścieżki z /v1/ na /v1beta/
-    url = f"[https://generativelanguage.googleapis.com/v1/models/](https://generativelanguage.googleapis.com/v1/models/){model}:generateContent?key={api_key}"
-    
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"    
     headers = {
         "Content-Type": "application/json"
     }
