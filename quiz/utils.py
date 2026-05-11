@@ -3,8 +3,6 @@ import json
 from django.conf import settings
 from .models import Quiz, Question, Answer
 
-# USUNIĘTO: from . import views (to powodowało błąd kołowego importu)
-
 def get_ai_quiz(topic, question_count=10, difficulty="medium"):
     api_key = settings.GOOGLE_API_KEY
     model = "gemini-2.5-flash" 
@@ -15,7 +13,6 @@ def get_ai_quiz(topic, question_count=10, difficulty="medium"):
         "Content-Type": "application/json"
     }
     
-    # POPRAWKA: Używamy czystych zmiennych przekazanych z funkcji (topic i difficulty)
     prompt = f"""Twoim ZADANIEM jest stworzenie quizu wyłącznie na temat: "{topic}".
     Poziom trudności: {difficulty}. 
     Liczba pytań: dokładnie {question_count}.
@@ -24,11 +21,13 @@ def get_ai_quiz(topic, question_count=10, difficulty="medium"):
     2. Pytania MUSZĄ ściśle dotyczyć podanego tematu ("{topic}"). 
     3. NIE WOLNO Ci generować ogólnych pytań z wiedzy powszechnej (takich jak stolica Francji czy czerwona planeta), chyba że podany temat dokładnie tego dotyczy."""
 
+    # Podgląd w konsoli, co dokładnie idzie do Google
+    print(f"\n---> 4. FAKTYCZNY PROMPT DO AI: \n{prompt}\n")
+
     payload = {
         "contents": [{
             "parts": [{"text": prompt}]
         }],
-        # Obniżamy filtry bezpieczeństwa, żeby AI nie blokowało trudnych/historycznych tematów
         "safetySettings": [
             {
                 "category": "HARM_CATEGORY_HATE_SPEECH",
