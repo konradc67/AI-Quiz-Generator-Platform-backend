@@ -8,7 +8,7 @@ def get_ai_quiz(topic, question_count=10, difficulty="medium"):
     api_key = settings.GOOGLE_API_KEY
     # Używamy v1beta, ponieważ najlepiej radzi sobie z modelami 1.5
     model = "gemini-1.5-flash" 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
+    url = f"https://generativelanguage.googleapis.com/v1/models/{model}:generateContent?key={api_key}"
     
     headers = {
         "Content-Type": "application/json"
