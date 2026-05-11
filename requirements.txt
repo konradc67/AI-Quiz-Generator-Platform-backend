@@ -19,3 +19,4 @@ djangorestframework
 django-cors-headers
 djangorestframework-simplejwt
 urllib3==2.6.3
+requests==2.31.0
