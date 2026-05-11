@@ -14,7 +14,13 @@ def get_ai_quiz(topic, question_count=10, difficulty="medium"):
     }
     
     # Prompt jest teraz super prosty, bo format narzucamy w generationConfig
-    prompt = f"Create a quiz about: {topic} with {difficulty} difficulty and exactly {question_count} questions."
+    prompt = f"""Twoim ZADANIEM jest stworzenie quizu wyłącznie na temat: "{topic}".
+    Poziom trudności: {difficulty}. 
+    Liczba pytań: dokładnie {question_count}.
+    WAŻNE ZASADY:
+    1. Pytania i odpowiedzi MUSZĄ być w języku takim jak ten, w którym jest podany temat.
+    2. Pytania MUSZĄ ściśle dotyczyć podanego tematu ("{topic}"). 
+    3. NIE WOLNO Ci generować ogólnych pytań z wiedzy powszechnej (takich jak stolica Francji czy czerwona planeta), chyba że podany temat dokładnie tego dotyczy."""
 
     payload = {
         "contents": [{
