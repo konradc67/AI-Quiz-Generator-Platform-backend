@@ -4,16 +4,13 @@ import re
 from django.conf import settings
 from .models import Quiz, Question, Answer
 
-def get_ai_quiz(topic, question_count=5, difficulty="easy"):
+def get_ai_quiz(topic, question_count=10, difficulty="medium"):
     api_key = settings.GOOGLE_API_KEY
-    
+    # Używamy wersji v1 i modelu flash dla stabilności
     model = "gemini-1.5-flash" 
-    
     url = f"https://generativelanguage.googleapis.com/v1/models/{model}:generateContent?key={api_key}"
     
-    headers = {
-        "Content-Type": "application/json"
-    }
+    headers = {"Content-Type": "application/json"}
     
     prompt = f"""Create quiz about: {topic} with {difficulty} difficulty and exactly {question_count} questions.
     Answer only in the following json format: [{{"q": "pytanie", "a": ["odp1", "odp2", "odp3", "odp4"], "correct": "odp1"}}] and nothing else"""
@@ -23,33 +20,23 @@ def get_ai_quiz(topic, question_count=5, difficulty="easy"):
             "parts": [{"text": prompt}]
         }],
         "generationConfig": {
-            "response_mime_type": "application/json"
+            "responseMimeType": "application/json" 
         }
     }
 
     try:
         response = requests.post(url, headers=headers, json=payload)
-        
-        if response.status_code == 200:
-            full_data = response.json()
-            
-            try:
-                content = full_data['candidates'][0]['content']['parts'][0]['text']
-                
-                content = re.sub(r"```json", "", content)
-                content = re.sub(r"```", "", content)
-                content = content.strip()
-                
-                return json.loads(content)
-            except (KeyError, IndexError):
-                return {"error": "Nieoczekiwany format odpowiedzi Gemini", "raw": full_data}
-            except json.JSONDecodeError:
-                return {"error": "AI wypluło niepoprawny JSON", "raw": content}
-        
-        return {"error": f"Błąd Google API: {response.status_code}", "details": response.text}
+        res_json = response.json()
 
-    except requests.exceptions.RequestException as e:
-        return {"error": "Błąd połączenia", "details": str(e)}
+        if response.status_code == 200:
+            # Wyciąganie tekstu z formatu Gemini
+            content = res_json['candidates'][0]['content']['parts'][0]['text']
+            return json.loads(content)
+        else:
+            return {"error": f"Błąd API: {response.status_code}", "details": res_json}
+
+    except Exception as e:
+        return {"error": "Wyjątek w kodzie", "details": str(e)}
 
 def save_ai_quiz(topic, ai_data, user=None):
     if isinstance(ai_data, dict) and "error" in ai_data:
