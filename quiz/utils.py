@@ -19,8 +19,8 @@ def get_ai_quiz(topic, question_count=10, difficulty="medium"):
         "contents": [{
             "parts": [{"text": prompt}]
         }],
-        "generationConfig": {
-            "responseMimeType": "application/json" 
+        "generation_config": {  # Zmienione na snake_case
+            "response_mime_type": "application/json" # Zmienione na snake_case
         }
     }
 
