@@ -2,6 +2,7 @@ import requests
 import json
 from django.conf import settings
 from .models import Quiz, Question, Answer
+from . import views
 
 def get_ai_quiz(topic, question_count=10, difficulty="medium"):
     api_key = settings.GOOGLE_API_KEY
@@ -14,12 +15,12 @@ def get_ai_quiz(topic, question_count=10, difficulty="medium"):
     }
     
     # Prompt jest teraz super prosty, bo format narzucamy w generationConfig
-    prompt = f"""Twoim ZADANIEM jest stworzenie quizu wyłącznie na temat: "{topic}".
-    Poziom trudności: {difficulty}. 
+    prompt = f"""Twoim ZADANIEM jest stworzenie quizu wyłącznie na temat: "{views.topic}".
+    Poziom trudności: {views.difficulty}. 
     Liczba pytań: dokładnie {question_count}.
     WAŻNE ZASADY:
     1. Pytania i odpowiedzi MUSZĄ być w języku takim jak ten, w którym jest podany temat.
-    2. Pytania MUSZĄ ściśle dotyczyć podanego tematu ("{topic}"). 
+    2. Pytania MUSZĄ ściśle dotyczyć podanego tematu ("{views.topic}"). 
     3. NIE WOLNO Ci generować ogólnych pytań z wiedzy powszechnej (takich jak stolica Francji czy czerwona planeta), chyba że podany temat dokładnie tego dotyczy."""
 
     payload = {
