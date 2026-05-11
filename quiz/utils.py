@@ -1,6 +1,5 @@
 import requests
 import json
-import re
 from django.conf import settings
 from .models import Quiz, Question, Answer
 
@@ -8,25 +7,39 @@ def get_ai_quiz(topic, question_count=10, difficulty="medium"):
     api_key = settings.GOOGLE_API_KEY
     model = "gemini-2.5-flash" 
     
-    # POPRAWKA 1: Zmiana ścieżki z /v1/ na /v1beta/
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"    
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
+    
     headers = {
         "Content-Type": "application/json"
     }
     
-    # Skrócony prompt – nie musimy już "błagać" modelu o brak markdownu
-    prompt = f"""Create a quiz about: {topic} with {difficulty} difficulty and exactly {question_count} questions.
-    Return the response ONLY as a JSON array of objects. 
-    Format: [{{"q": "pytanie", "a": ["odp1", "odp2", "odp3", "odp4"], "correct": "odp1"}}]"""
+    # Prompt jest teraz super prosty, bo format narzucamy w generationConfig
+    prompt = f"Create a quiz about: {topic} with {difficulty} difficulty and exactly {question_count} questions."
 
     payload = {
         "contents": [{
             "parts": [{"text": prompt}]
         }],
-        # POPRAWKA 2: Wymuszenie czystego JSON-a natywną metodą API
-        # Zwróć uwagę na camelCase: responseMimeType (to rozwiązuje Twój wcześniejszy błąd 400)
         "generationConfig": {
-            "responseMimeType": "application/json"
+            "responseMimeType": "application/json",
+            # responseSchema całkowicie blokuje AI przed pisaniem bzdur.
+            # Zmusza model do wygenerowania dokładnie takiej struktury.
+            "responseSchema": {
+                "type": "ARRAY",
+                "items": {
+                    "type": "OBJECT",
+                    "properties": {
+                        "q": {"type": "STRING", "description": "Treść pytania"},
+                        "a": {
+                            "type": "ARRAY",
+                            "items": {"type": "STRING"},
+                            "description": "Lista 4 możliwych odpowiedzi"
+                        },
+                        "correct": {"type": "STRING", "description": "Dokładna treść poprawnej odpowiedzi (musi być jedną z wartości z listy 'a')"}
+                    },
+                    "required": ["q", "a", "correct"]
+                }
+            }
         }
     }
 
@@ -36,12 +49,8 @@ def get_ai_quiz(topic, question_count=10, difficulty="medium"):
 
         if response.status_code == 200:
             try:
-                # W Gemini tekst znajduje się w candidates -> content -> parts -> text
                 content = res_json['candidates'][0]['content']['parts'][0]['text']
-                
-                # Model gwarantuje teraz zwrot czystego JSON-a, bez formatowania ```json
                 return json.loads(content)
-            
             except (KeyError, IndexError, json.JSONDecodeError) as e:
                 return {"error": "Błąd parsowania odpowiedzi AI", "details": str(e), "raw": res_json}
         
@@ -50,8 +59,8 @@ def get_ai_quiz(topic, question_count=10, difficulty="medium"):
     except Exception as e:
         return {"error": "Błąd krytyczny połączenia", "details": str(e)}
 
+# Funkcja save_ai_quiz zostaje bez zmian (działa poprawnie z tą strukturą)
 def save_ai_quiz(topic, ai_data, user=None):
-    # Jeśli ai_data to słownik z błędem, przerywamy
     if isinstance(ai_data, dict) and "error" in ai_data:
         print(f"Nie można zapisać quizu: {ai_data['error']}")
         return None
@@ -72,7 +81,6 @@ def save_ai_quiz(topic, ai_data, user=None):
         for ans in item["a"]:
             Answer.objects.create(
                 text=ans,
-                # Czyścimy spacje, żeby porównanie było pewne
                 correct=(ans.strip() == item["correct"].strip()),
                 question=question
             )
