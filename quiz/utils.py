@@ -2,7 +2,8 @@ import requests
 import json
 from django.conf import settings
 from .models import Quiz, Question, Answer
-from . import views
+
+# USUNIĘTO: from . import views (to powodowało błąd kołowego importu)
 
 def get_ai_quiz(topic, question_count=10, difficulty="medium"):
     api_key = settings.GOOGLE_API_KEY
@@ -14,23 +15,40 @@ def get_ai_quiz(topic, question_count=10, difficulty="medium"):
         "Content-Type": "application/json"
     }
     
-    # Prompt jest teraz super prosty, bo format narzucamy w generationConfig
-    prompt = f"""Twoim ZADANIEM jest stworzenie quizu wyłącznie na temat: "{views.topic}".
-    Poziom trudności: {views.difficulty}. 
+    # POPRAWKA: Używamy czystych zmiennych przekazanych z funkcji (topic i difficulty)
+    prompt = f"""Twoim ZADANIEM jest stworzenie quizu wyłącznie na temat: "{topic}".
+    Poziom trudności: {difficulty}. 
     Liczba pytań: dokładnie {question_count}.
     WAŻNE ZASADY:
     1. Pytania i odpowiedzi MUSZĄ być w języku takim jak ten, w którym jest podany temat.
-    2. Pytania MUSZĄ ściśle dotyczyć podanego tematu ("{views.topic}"). 
+    2. Pytania MUSZĄ ściśle dotyczyć podanego tematu ("{topic}"). 
     3. NIE WOLNO Ci generować ogólnych pytań z wiedzy powszechnej (takich jak stolica Francji czy czerwona planeta), chyba że podany temat dokładnie tego dotyczy."""
 
     payload = {
         "contents": [{
             "parts": [{"text": prompt}]
         }],
+        # Obniżamy filtry bezpieczeństwa, żeby AI nie blokowało trudnych/historycznych tematów
+        "safetySettings": [
+            {
+                "category": "HARM_CATEGORY_HATE_SPEECH",
+                "threshold": "BLOCK_ONLY_HIGH"
+            },
+            {
+                "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+                "threshold": "BLOCK_ONLY_HIGH"
+            },
+            {
+                "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                "threshold": "BLOCK_ONLY_HIGH"
+            },
+            {
+                "category": "HARM_CATEGORY_HARASSMENT",
+                "threshold": "BLOCK_ONLY_HIGH"
+            }
+        ],
         "generationConfig": {
             "responseMimeType": "application/json",
-            # responseSchema całkowicie blokuje AI przed pisaniem bzdur.
-            # Zmusza model do wygenerowania dokładnie takiej struktury.
             "responseSchema": {
                 "type": "ARRAY",
                 "items": {
@@ -66,7 +84,6 @@ def get_ai_quiz(topic, question_count=10, difficulty="medium"):
     except Exception as e:
         return {"error": "Błąd krytyczny połączenia", "details": str(e)}
 
-# Funkcja save_ai_quiz zostaje bez zmian (działa poprawnie z tą strukturą)
 def save_ai_quiz(topic, ai_data, user=None):
     if isinstance(ai_data, dict) and "error" in ai_data:
         print(f"Nie można zapisać quizu: {ai_data['error']}")
