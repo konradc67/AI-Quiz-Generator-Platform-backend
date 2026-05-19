@@ -18,12 +18,14 @@ from django.contrib import admin
 from django.urls import path,include
 from django.conf import settings
 from django.conf.urls.static import static
-
+from users.views import CreateStripeCheckoutSessionView, StripeWebhookView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('quiz.urls')),
-    path('user/', include('users.urls'))
+    path('user/', include('users.urls')),
+    path('stripe/checkout/', CreateStripeCheckoutSessionView.as_view(), name='stripe-checkout'),
+    path('stripe/webhook/', StripeWebhookView.as_view(), name='stripe-webhook'),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

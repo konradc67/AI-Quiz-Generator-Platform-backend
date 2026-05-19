@@ -14,6 +14,8 @@ class User(AbstractUser):
     country = models.CharField(max_length=50)
     premium = models.BooleanField(default=False)
     points = models.PositiveIntegerField(default=0)
+    stripe_customer_id = models.CharField(max_length=255, blank=True, null=True)
+    subscription_plan = models.CharField(max_length=50, default='free')  # 'free', 'pro', 'ultra'
     role = models.CharField(
         max_length=10,
         choices=Role.choices,
