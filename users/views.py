@@ -1,7 +1,7 @@
-from rest_framework import generics, serializers
+from rest_framework import generics, serializers, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from rest_framework.response import Response
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -15,22 +15,52 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('username', 'email', 'password', 'first_name', 'last_name',
-                    'country', 'role')
-        extra_kwargs = {'password': {'write_only': True}}
+        # Rejestracja wymaga tych pól. Jeśli frontend ich nie wyśle, 
+        # serializer wyrzuci błąd walidacji, który teraz precyzyjnie złapiemy.
+        fields = ('username', 'email', 'password', 'first_name', 'last_name', 'country', 'role')
+        extra_kwargs = {
+            'password': {'write_only': True},
+            'email': {'required': True}, # Zazwyczaj email jest wymagany
+        }
 
     def create(self, validated_data):
+        # Bezpieczne wyciąganie pól z domyślnymi wartościami
+        country = validated_data.pop('country', '')
+        role = validated_data.pop('role', 'STUDENT')
+        
+        # Tworzenie użytkownika za pomocą create_user (szyfruje hasło)
         user = User.objects.create_user(
             username=validated_data['username'],
             email=validated_data.get('email', ''),
             password=validated_data['password'],
-            first_name=validated_data.get('first_name',''),
-            last_name=validated_data.get('last_name',''),
+            first_name=validated_data.get('first_name', ''),
+            last_name=validated_data.get('last_name', ''),
         )
-        user.country=validated_data.get('country','')
-        user.role=validated_data.get('role','STUDENT')
+        
+        # Przypisanie dodatkowych pól do rozszerzonego modelu
+        user.country = country
+        user.role = role
         user.save()
         return user
+
+
+class RegisterView(generics.CreateAPIView):
+    queryset = User.objects.all()
+    permission_classes = (AllowAny,)
+    serializer_class = RegisterSerializer
+
+    # Nadpisujemy metodę post, aby w logach Vercela czarno na białym 
+    # zobaczyć błąd, jeśli frontend wyśle złe dane (np. brakujące pola)
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if not serializer.is_is_valid():
+            print(f"--- BŁĄD WALIDACJI REJESTRACJI ---")
+            print(serializer.errors) # To pojawi się w logach Vercela!
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
 class CreateStripeCheckoutSessionView(APIView):
@@ -48,6 +78,7 @@ class CreateStripeCheckoutSessionView(APIView):
                 price_id = os.environ.get('STRIPE_PRICE_ULTRA_ID')
 
             if not price_id:
+                print("BŁĄD STRIPE: Brak STRIPE_PRICE_PRO_ID lub STRIPE_PRICE_ULTRA_ID w zmiennych środowiskowych Vercela!")
                 return Response({
                     "success": False,
                     "error": "Konfiguracja Stripe na serwerze jest niekompletna (brak Price ID)."
@@ -76,6 +107,7 @@ class CreateStripeCheckoutSessionView(APIView):
             return Response({"success": True, "checkout_url": checkout_session.url})
 
         except Exception as e:
+            print(f"BŁĄD STRIPE CHECKOUT: {str(e)}")
             return Response({"success": False, "error": str(e)}, status=500)
 
 
@@ -87,13 +119,19 @@ class StripeWebhookView(APIView):
         sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
         endpoint_secret = os.environ.get('STRIPE_WEBHOOK_SECRET')
 
+        if not endpoint_secret:
+            print("BŁĄD WEBHOOKA: Brak STRIPE_WEBHOOK_SECRET w zmiennych środowiskowych Vercela!")
+            return HttpResponse("Webhook secret missing", status=500)
+
         try:
             event = stripe.Webhook.construct_event(
                 payload, sig_header, endpoint_secret
             )
-        except ValueError:
+        except ValueError as e:
+            print(f"BŁĄD WEBHOOKA (ValueError): {str(e)}")
             return HttpResponse(status=400)
-        except stripe.error.SignatureVerificationError:
+        except stripe.error.SignatureVerificationError as e:
+            print(f"BŁĄD WEBHOOKA (SignatureVerificationError - zły klucz/sygnatura): {str(e)}")
             return HttpResponse(status=400)
 
         if event['type'] == 'checkout.session.completed':
@@ -103,40 +141,40 @@ class StripeWebhookView(APIView):
             plan = session.get('metadata', {}).get('plan')
             stripe_customer_id = session.get('customer')
 
+            print(f"Otrzymano webhook checkout.session.completed dla User ID: {user_id}, Plan: {plan}")
+
             if user_id and plan:
                 try:
                     user = User.objects.get(id=user_id)
                     user.subscription_plan = plan
                     user.stripe_customer_id = stripe_customer_id
-
-
-
                     user.save()
-                    print(f"Sukces! Użytkownik {user.username} ma teraz plan {plan}")
+                    print(f"SUKCES: Użytkownik {user.username} (ID: {user_id}) pomyślnie zaktualizowany do planu {plan}!")
                 except User.DoesNotExist:
-                    pass
+                    print(f"BŁĄD WEBHOOKA: Stripe zapłacił, ale użytkownik o ID {user_id} nie istnieje w bazie danych!")
+                    return HttpResponse("User not found", status=404)
+                except Exception as e:
+                    print(f"BŁĄD ZAPISU UŻYTKOWNIKA W WEBHOOKU: {str(e)}")
+                    return HttpResponse("Database save error", status=500)
 
         return HttpResponse(status=200)
 
-
-
-class RegisterView(generics.CreateAPIView):
-    queryset = User.objects.all()
-    permission_classes = (AllowAny,)
-    serializer_class = RegisterSerializer
 
 @api_view(['GET'])
 def user(request):
     return Response({"message": "user page"})
 
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def profile(request):
     user = request.user
-    return Response({"message": "profile page",
-                     "username": user.username,
-                     "first_name": user.first_name,
-                     "last_name": user.last_name,
-                     "email": user.email,
-                     "country": user.country,
-                     "role": user.role,})
+    return Response({
+        "message": "profile page",
+        "username": user.username,
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+        "email": user.email,
+        "country": getattr(user, 'country', ''),
+        "role": getattr(user, 'role', 'STUDENT'),
+    })
